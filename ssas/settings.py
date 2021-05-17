@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # 主应用
+    'mainapp',
 ]
 
 MIDDLEWARE = [
@@ -125,6 +127,17 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# 腾讯云短信ID
+TENCENT_APP_ID = 0
+TENCENT_APP_KEY = "xxx"
+TENCENT_SMS_SIGN = "xxx"
+
+# 短信模板及ID
+TENCENT_SMS_TEMPLATE = {
+    'register': 0,
+    'login': 0,
+    'pwd-reset': 0,
+}
 
 # local_settings中新增配置
 # local_settings中的配置将覆盖settings中的配置
