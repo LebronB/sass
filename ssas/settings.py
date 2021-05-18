@@ -121,6 +121,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = (
+    BASE_DIR / 'static',
+)
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
@@ -138,6 +142,25 @@ TENCENT_SMS_TEMPLATE = {
     'login': 0,
     'pwd-reset': 0,
 }
+
+# django-redis配置
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        # Redis server ip:port
+        "LOCATION": "redis://1.1.1.1:1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "Connection_POOL_KWARGS": {
+                "max_connections": 0,
+                "encoding": 'utf-8'
+            },
+            # redis pwd
+            "PASSWORD": "xxxx"
+        }
+    }
+}
+
 
 # local_settings中新增配置
 # local_settings中的配置将覆盖settings中的配置

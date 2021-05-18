@@ -25,5 +25,5 @@ def send_massage(request):
 def register(request):
     register_form = RegisterModelForm()
     context = {'register_form': register_form}
-    return render(request, 'register.html', context)
+    return render(request, 'mainapp/register.html', context)
 
