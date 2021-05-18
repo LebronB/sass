@@ -1,9 +1,11 @@
-from django.shortcuts import render, HttpResponse
-from utils.tencent.sms import send_sms_single
-from django.conf import settings
-
-
 import random
+
+from django.conf import settings
+from django.shortcuts import HttpResponse, render
+
+from utils.tencent.sms import send_sms_single
+from .forms import RegisterModelForm
+
 
 # Create your views here.
 def send_massage(request):
@@ -18,4 +20,10 @@ def send_massage(request):
         return HttpResponse('成功')
     else:
         return HttpResponse(res['errmsg'])
+
+
+def register(request):
+    register_form = RegisterModelForm()
+    context = {'register_form': register_form}
+    return render(request, 'register.html', context)
 
