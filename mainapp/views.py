@@ -1,25 +1,15 @@
-import random
-
-from django.conf import settings
 from django.shortcuts import HttpResponse, render
-
-from utils.tencent.sms import send_sms_single
-from .forms import RegisterModelForm
+from django.http import JsonResponse
+from .forms import RegisterModelForm, SendMsgForm
 
 
 # Create your views here.
 def send_massage(request):
-    tpl = request.GET.get('tpl')
-    template_id = settings.TENCENT_SMS_TEMPLATE.get(tpl)
-    if not template_id:
-        return HttpResponse("发送失败，模板不存在")
+    send_msg_form = SendMsgForm(request, data=request.GET)
+    if send_msg_form.is_valid():
+        return JsonResponse({'status': True})
 
-    code = random.randrange(1000, 9999)
-    res = send_sms_single('13540166346', template_id, [code, ])
-    if res['result'] == 0:
-        return HttpResponse('成功')
-    else:
-        return HttpResponse(res['errmsg'])
+    return JsonResponse({'status': False, 'error': send_msg_form.errors})
 
 
 def register(request):

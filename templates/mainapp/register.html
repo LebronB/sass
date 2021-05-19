@@ -1,43 +1,3 @@
-{#<!DOCTYPE html>#}
-{#<html lang="en">#}
-{#<head>#}
-{#  <meta charset="UTF-8">#}
-{#  <title>Title</title>#}
-{#  <style>#}
-{#    .account{#}
-{#      width: 400px;#}
-{#      margin: 0 auto;#}
-{#    }#}
-{#  </style>#}
-{#</head>#}
-{#<body>#}
-{#  <div class="account">#}
-{#    <h1>注册</h1>#}
-{##}
-{#    <form>#}
-{#      {% for field in register_form %}#}
-{#        {% if field.name == 'code' %}#}
-{#          <div class="form-group">#}
-{#            <label for="{{ field.id_for_label }}">{{ field.label }}</label>#}
-{#            <div class="clearfix">#}
-{#              <div class="col-md-6" style="padding: 0">{{ field }}</div>#}
-{#              <div class="col-md-6"><input type="button" value="点击获取验证码" class="btn btn-default"></div>#}
-{#            </div>#}
-{#          </div>#}
-{#        {% else %}#}
-{#          <div class="form-group">#}
-{#            <label for="{{ field.id_for_label }}">{{ field.label }}</label>#}
-{#            {{ field }}#}
-{#          </div>#}
-{#        {% endif %}#}
-{#      {% endfor %}#}
-{#      <button type="submit" class="btn btn-primary">注册</button>#}
-{#    </form>#}
-{#  </div>#}
-{#</body>#}
-{#</html>#}
-{##}
-
 {% extends "layout/base.html" %}
 {% load static %}
 
@@ -92,4 +52,62 @@
         </form>
     </div>
 
+{% endblock %}
+
+{% block script %}
+  <script>
+      function smsRemind() {
+          var $btnSms = $("#btnSms");
+
+          $btnSms.prop('disabled', true);
+          var time = 60;
+          var remind = setInterval(function () {
+              $btnSms.val(time + "秒后重新发送");
+
+              time = time - 1;
+              if (time < 1) {
+                  clearInterval(remind);
+                  $btnSms.val("重新获取验证码").prop('disabled', false);
+              }
+          }, 1000)
+      }
+
+      /*
+       * 点击获取验证码的按钮绑定事件
+       */
+      function bindClickBtnSms() {
+          $('#btnSms').click(function () {
+              // 清空错误信息
+              $(".error-msg").empty();
+              // 获取用户输入的手机号
+              var mobilePhone = $('#id_mobile_phone').val();
+
+              // 发送ajax请求
+              $.ajax({
+                  // 生成 http://www.xx.com/index/?k1=1&k2=2
+                  url: "{% url "mainapp:sms" %}",
+                  type: "GET",
+                  data: {mobile_phone: mobilePhone, tpl: "register"},
+                  // 将返回的数据反序列化为字典
+                  dataType: "JSON",
+                  success: function (res) {
+                      //ajax请求发送成功之后自动执行的函数
+                      if (res.status) {
+                          smsRemind();
+                      } else {
+                          // 错误信息
+                          $.each(res.error, function (key, value) {
+                              $("#id_" + key).next().text(value[0]);
+                          })
+                      }
+                  }
+              })
+          })
+      }
+
+      //页面框架加载完成之后自动执行函数
+    $(function () {
+        bindClickBtnSms();
+    })
+  </script>
 {% endblock %}
