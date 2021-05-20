@@ -13,7 +13,18 @@ def send_massage(request):
 
 
 def register(request):
-    register_form = RegisterModelForm()
-    context = {'register_form': register_form}
-    return render(request, 'mainapp/register.html', context)
+    if request.method == 'GET':
+        register_form = RegisterModelForm()
+        context = {'register_form': register_form}
+        return render(request, 'mainapp/register.html', context)
+    elif request.method == 'POST':
+        register_form = RegisterModelForm(request.POST)
+        if register_form.is_valid():
+            # 密码存储为密文
+            register_form.save()
+            return JsonResponse({'status': True, 'data': '/login/'})
+
+        return JsonResponse({'status': False, 'error': register_form.errors})
+
+    return JsonResponse({})
 
