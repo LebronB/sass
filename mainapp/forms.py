@@ -1,19 +1,26 @@
-from .models import UserInfo
-from django import forms
-from django.core.validators import RegexValidator
-from django.core.exceptions import ValidationError
-from django.conf import settings
 import random
-from utils.tencent.sms import send_sms_single
-from utils.encrypt import md5
+
+from django import forms
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django_redis import get_redis_connection
 
+from utils.encrypt import md5
+from utils.tencent.sms import send_sms_single
+from .models import UserInfo
 
-class RegisterModelForm(forms.ModelForm):
-    mobile_phone = forms.CharField(
-        label='手机号码',
-        validators=[RegexValidator(r'^(1[3|4|5|6|7|8|9])\d{9}$', '手机号码格式错误')]
-    )
+
+# Bootstrap基类，用于给表单添加样式以及placeholder
+class BootStrapForm(object):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            field.widget.attrs['class'] = 'form-control'
+            field.widget.attrs['placeholder'] = '请输入%s' % field.label
+
+
+class RegisterModelForm(BootStrapForm, forms.ModelForm):
     password = forms.CharField(
         label='密码',
         min_length=8,
@@ -34,6 +41,10 @@ class RegisterModelForm(forms.ModelForm):
         },
         widget=forms.PasswordInput()
     )
+    mobile_phone = forms.CharField(
+        label='手机号码',
+        validators=[RegexValidator(r'^(1[3|4|5|6|7|8|9])\d{9}$', '手机号码格式错误')]
+    )
     code = forms.CharField(label='验证码')
 
     class Meta:
@@ -46,12 +57,6 @@ class RegisterModelForm(forms.ModelForm):
             'mobile_phone',
             'code'
         ]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for name, field in self.fields.items():
-            field.widget.attrs['class'] = 'form-control'
-            field.widget.attrs['placeholder'] = '请输入%s' % field.label
 
     # 用户名钩子 不可重复
     def clean_username(self):
@@ -78,7 +83,8 @@ class RegisterModelForm(forms.ModelForm):
 
     # 重复密码钩子
     def clean_confirm_password(self):
-        pwd = self.cleaned_data['password']
+        # 在清洗一个字段时，如果要拿另一个字段，使用get避免获取不到这个key的问题
+        pwd = self.cleaned_data.get('password')
         confirm_pwd = md5(self.cleaned_data['confirm_password'])
         if pwd != confirm_pwd:
             raise ValidationError("两次密码不一致")
@@ -97,8 +103,11 @@ class RegisterModelForm(forms.ModelForm):
     # 验证码钩子
     def clean_code(self):
         code = self.cleaned_data['code']
-        mobile_phone = self.cleaned_data['mobile_phone']
+        mobile_phone = self.cleaned_data.get('mobile_phone')
 
+        # mobile_phone未验证通过，直接返回code
+        if not mobile_phone:
+            return code
         conn = get_redis_connection()
         redis_code = conn.get(mobile_phone)
         if not redis_code:
@@ -109,6 +118,7 @@ class RegisterModelForm(forms.ModelForm):
             raise ValidationError("验证码错误，请检查")
 
         return code
+
 
 class SendMsgForm(forms.Form):
     # 使用regex验证格式
@@ -130,8 +140,12 @@ class SendMsgForm(forms.Form):
 
         # 校验数据库中是否存在该手机号
         exists = UserInfo.objects.filter(mobile_phone=mobile_phone).exists()
-        if exists:
-            raise ValidationError("该号码已注册")
+        if tpl == 'login':
+            if not exists:
+                raise ValidationError("手机号未注册")
+        else:
+            if exists:
+                raise ValidationError("该号码已注册")
 
         # 发短信
         code = random.randrange(1000, 9999)
@@ -144,3 +158,11 @@ class SendMsgForm(forms.Form):
         conn.set(mobile_phone, code, ex=60)
 
         return mobile_phone
+
+
+class LoginSmsForm(BootStrapForm, forms.Form):
+    mobile_phone = forms.CharField(
+        label='手机号码',
+        validators=[RegexValidator(r'^(1[3|4|5|6|7|8|9])\d{9}$', '手机号码格式错误')]
+    )
+    code = forms.CharField(label='验证码')

@@ -1,6 +1,7 @@
-from django.shortcuts import HttpResponse, render
 from django.http import JsonResponse
-from .forms import RegisterModelForm, SendMsgForm
+from django.shortcuts import render
+
+from .forms import RegisterModelForm, SendMsgForm, LoginSmsForm
 
 
 # Create your views here.
@@ -28,3 +29,8 @@ def register(request):
 
     return JsonResponse({})
 
+
+def login_sms(request):
+    login_sms_form = LoginSmsForm()
+    context = {'login_sms_form': login_sms_form}
+    return render(request, "mainapp/login_sms.html", context)

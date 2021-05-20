@@ -10,5 +10,6 @@ urlpatterns = [
     path('sms/', views.send_massage, name='sms'),
     # 用户注册
     path('register/', views.register, name='register'),
-
+    # 用户短信登录
+    path('login/sms/', views.login_sms, name='login_sms'),
 ]
