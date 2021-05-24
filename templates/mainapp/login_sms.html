@@ -44,6 +44,12 @@
                 {% endif %}
             {% endfor %}
 
+            <div>
+              <div style="float: right">
+                <a href="{% url "mainapp:login" %}">用户名密码登录</a>
+              </div>
+            </div>
+
             <div class="row">
                 <div class="col-xs-3">
                     <input id="btnSubmit" type="button" class="btn btn-primary" value="登  录"/>
@@ -58,8 +64,9 @@
   <script>
       $(function () {
           bindClickBtnSms();
+          bindClickBtnSubmit();
       });
-      
+
       function bindClickBtnSms() {
           $("#btnSms").click(function () {
               // 清空错误信息
@@ -100,6 +107,32 @@
                   $btnSms.val("重新获取验证码").prop('disabled', false);
               }
           }, 1000)
+      }
+
+            function bindClickBtnSubmit() {
+          // 这里使用ajax而不用button的type=submit是为了提示错误信息时，防止页面刷新把验证码的倒计时效果清空
+          $('#btnSubmit').click(function () {
+              // 清空错误信息
+              $('.error-msg').empty();
+              // 收集表单数据
+              // ajax发送到后台
+              $.ajax({
+                  url: "{% url "mainapp:login_sms" %}",
+                  type: "POST",
+                  data: $('#smsForm').serialize(), // 包含所有文件的数据 + csrf_token
+                  dataType: "JSON",
+                  success: function (res) {
+                      if (res.status) {
+                          // 注册成功则跳转到后台返回的url
+                          location.href = res.data;
+                      } else {
+                          $.each(res.error, function (key, value) {
+                              $('#id_' + key).next().text(value[0]);
+                          });
+                      }
+                  }
+              })
+          })
       }
 
   </script>

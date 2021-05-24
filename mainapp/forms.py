@@ -166,3 +166,57 @@ class LoginSmsForm(BootStrapForm, forms.Form):
         validators=[RegexValidator(r'^(1[3|4|5|6|7|8|9])\d{9}$', '手机号码格式错误')]
     )
     code = forms.CharField(label='验证码')
+
+    def clean_mobile_phone(self):
+        mobile_phone = self.cleaned_data['mobile_phone']
+        user_object = UserInfo.objects.filter(mobile_phone=mobile_phone).first()
+        if not user_object:
+            raise ValidationError("手机号未注册")
+        return user_object
+
+    def clean_code(self):
+        user_object = self.cleaned_data.get('mobile_phone')
+        code = self.cleaned_data['code']
+        if not user_object:
+            return code
+
+        conn = get_redis_connection()
+        redis_code = conn.get(user_object.mobile_phone)
+        if not redis_code:
+            raise ValidationError("验证码失效或未发送，请重试")
+
+        redis_str_code = redis_code.decode('utf-8')
+        if code.strip() != redis_str_code:
+            raise ValidationError("验证码错误，请重新输入")
+
+        return code
+
+
+class LoginForm(BootStrapForm, forms.Form):
+    username = forms.CharField(label="邮箱或手机号")
+    # 上一次的输入值仍然保留在框中
+    password = forms.CharField(label="密码", widget=forms.PasswordInput(render_value=True))
+    code = forms.CharField(label="图片验证码")
+
+    def __init__(self, request, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.request = request
+
+    def clean_code(self):
+        """图片验证码是否正确"""
+        code = self.cleaned_data['code']
+        # 取session中的验证码
+        session_code = self.request.session.get('image_code')
+        if not session_code:
+            raise ValidationError("验证码已过期，请重新获取")
+        # 比较验证码
+        if code.strip().upper() != session_code.strip().upper():
+            raise ValidationError("验证码输入错误")
+
+        return code
+
+    # 暂且去掉密码加密功能，因为是从后台直接添加了user，没有加密密码
+    # def clean_password(self):
+    #     """密码文本加密"""
+    #     pwd = self.cleaned_data['password']
+    #     return md5(pwd)
