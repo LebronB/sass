@@ -5,9 +5,10 @@ from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
 
 from utils.verification.verification import check_code
-from .forms import RegisterModelForm, SendMsgForm, LoginSmsForm, LoginForm
-from .models import UserInfo
-
+from mainapp.forms import RegisterModelForm, SendMsgForm, LoginSmsForm, LoginForm
+from mainapp.models import UserInfo, Transaction, PricePolicy
+import uuid
+import datetime
 
 # Create your views here.
 
@@ -33,7 +34,20 @@ def register(request):
         register_form = RegisterModelForm(request.POST)
         if register_form.is_valid():
             # 密码存储为密文
-            register_form.save()
+            instance = register_form.save()
+
+            # 创建交易记录
+            policy_object = PricePolicy.objects.filter(category=1, title="个人免费版").first()
+            Transaction.objects.create(
+                status=2,
+                order=str(uuid.uuid4()),
+                user=instance,
+                price_policy=policy_object,
+                count=0,
+                price=0,
+                start_datetime=datetime.datetime.now()
+            )
+
             return JsonResponse({'status': True, 'data': '/login/'})
 
         return JsonResponse({'status': False, 'error': register_form.errors})

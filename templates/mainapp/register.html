@@ -56,54 +56,54 @@
 
 {% block script %}
   <script>
-      function smsRemind() {
-          var $btnSms = $("#btnSms");
-
-          $btnSms.prop('disabled', true);
-          var time = 60;
-          var remind = setInterval(function () {
-              $btnSms.val(time + "秒后重新发送");
-
-              time = time - 1;
-              if (time < 1) {
-                  clearInterval(remind);
-                  $btnSms.val("重新获取验证码").prop('disabled', false);
-              }
-          }, 1000)
-      }
-
-      /*
-       * 点击获取验证码的按钮绑定事件
-       */
-      function bindClickBtnSms() {
-          $('#btnSms').click(function () {
-              // 清空错误信息
-              $(".error-msg").empty();
-              // 获取用户输入的手机号
-              var mobilePhone = $('#id_mobile_phone').val();
-
-              // 发送ajax请求
-              $.ajax({
-                  // 生成 http://www.xx.com/index/?k1=1&k2=2
-                  url: "{% url "mainapp:sms" %}",
-                  type: "GET",
-                  data: {mobile_phone: mobilePhone, tpl: "register"},
-                  // 将返回的数据反序列化为字典
-                  dataType: "JSON",
-                  success: function (res) {
-                      //ajax请求发送成功之后自动执行的函数
-                      if (res.status) {
-                          smsRemind();
-                      } else {
-                          // 错误信息
-                          $.each(res.error, function (key, value) {
-                              $("#id_" + key).next().text(value[0]);
-                          })
-                      }
-                  }
-              })
-          })
-      }
+      {#function smsRemind() {#}
+      {#    var $btnSms = $("#btnSms");#}
+      {##}
+      {#    $btnSms.prop('disabled', true);#}
+      {#    var time = 60;#}
+      {#    var remind = setInterval(function () {#}
+      {#        $btnSms.val(time + "秒后重新发送");#}
+      {##}
+      {#        time = time - 1;#}
+      {#        if (time < 1) {#}
+      {#            clearInterval(remind);#}
+      {#            $btnSms.val("重新获取验证码").prop('disabled', false);#}
+      {#        }#}
+      {#    }, 1000)#}
+      {# }#}
+      {##}
+      {#/*#}
+      {# * 点击获取验证码的按钮绑定事件#}
+      {# */#}
+      {#function bindClickBtnSms() {#}
+      {#    $('#btnSms').click(function () {#}
+      {#        // 清空错误信息#}
+      {#        $(".error-msg").empty();#}
+      {#        // 获取用户输入的手机号#}
+      {#        var mobilePhone = $('#id_mobile_phone').val();#}
+      {##}
+      {#        // 发送ajax请求#}
+      {#        $.ajax({#}
+      {#            // 生成 http://www.xx.com/index/?k1=1&k2=2#}
+      {#            url: "{% url "mainapp:sms" %}",#}
+      {#            type: "GET",#}
+      {#            data: {mobile_phone: mobilePhone, tpl: "register"},#}
+      {#            // 将返回的数据反序列化为字典#}
+      {#            dataType: "JSON",#}
+      {#            success: function (res) {#}
+      {#                //ajax请求发送成功之后自动执行的函数#}
+      {#                if (res.status) {#}
+      {#                    smsRemind();#}
+      {#                } else {#}
+      {#                    // 错误信息#}
+      {#                    $.each(res.error, function (key, value) {#}
+      {#                        $("#id_" + key).next().text(value[0]);#}
+      {#                    })#}
+      {#                }#}
+      {#            }#}
+      {#        })#}
+      {#    })#}
+      {# }#}
 
       function bindClickBtnSubmit() {
           // 这里使用ajax而不用button的type=submit是为了提示错误信息时，防止页面刷新把验证码的倒计时效果清空
@@ -133,7 +133,7 @@
 
       //页面框架加载完成之后自动执行函数
     $(function () {
-        bindClickBtnSms();
+        {#bindClickBtnSms();#}
         bindClickBtnSubmit();
     })
   </script>

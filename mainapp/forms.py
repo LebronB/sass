@@ -101,23 +101,23 @@ class RegisterModelForm(BootStrapForm, forms.ModelForm):
         return mobile_phone
 
     # 验证码钩子
-    def clean_code(self):
-        code = self.cleaned_data['code']
-        mobile_phone = self.cleaned_data.get('mobile_phone')
-
-        # mobile_phone未验证通过，直接返回code
-        if not mobile_phone:
-            return code
-        conn = get_redis_connection()
-        redis_code = conn.get(mobile_phone)
-        if not redis_code:
-            raise ValidationError("验证码已失效或未发送，请重新发送")
-
-        redis_str_code = redis_code.decode('utf-8')
-        if code.strip() != redis_str_code:
-            raise ValidationError("验证码错误，请检查")
-
-        return code
+    # def clean_code(self):
+    #     code = self.cleaned_data['code']
+    #     mobile_phone = self.cleaned_data.get('mobile_phone')
+    #
+    #     # mobile_phone未验证通过，直接返回code
+    #     if not mobile_phone:
+    #         return code
+    #     conn = get_redis_connection()
+    #     redis_code = conn.get(mobile_phone)
+    #     if not redis_code:
+    #         raise ValidationError("验证码已失效或未发送，请重新发送")
+    #
+    #     redis_str_code = redis_code.decode('utf-8')
+    #     if code.strip() != redis_str_code:
+    #         raise ValidationError("验证码错误，请检查")
+    #
+    #     return code
 
 
 class SendMsgForm(forms.Form):
@@ -215,8 +215,8 @@ class LoginForm(BootStrapForm, forms.Form):
 
         return code
 
-    # 暂且去掉密码加密功能，因为是从后台直接添加了user，没有加密密码
-    # def clean_password(self):
-    #     """密码文本加密"""
-    #     pwd = self.cleaned_data['password']
-    #     return md5(pwd)
+    # 密码保存为密文
+    def clean_password(self):
+        """密码文本加密"""
+        pwd = self.cleaned_data['password']
+        return md5(pwd)

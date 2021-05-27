@@ -162,6 +162,15 @@ CACHES = {
     }
 }
 
+# 白名单：无需登录就可以访问的页面
+WHITE_REGEX_URL_LIST = [
+    '/index/',
+    '/sms/',
+    '/register/',
+    '/login/sms/',
+    '/login/',
+    '/image_code/',
+]
 
 # local_settings中新增配置
 # local_settings中的配置将覆盖settings中的配置
