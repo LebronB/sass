@@ -5,7 +5,7 @@ from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
 
 from utils.verification.verification import check_code
-from mainapp.forms import RegisterModelForm, SendMsgForm, LoginSmsForm, LoginForm
+from mainapp.forms.account import RegisterModelForm, SendMsgForm, LoginSmsForm, LoginForm
 from mainapp.models import UserInfo, Transaction, PricePolicy
 import uuid
 import datetime

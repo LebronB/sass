@@ -23,4 +23,8 @@ urlpatterns = [
 
     # 项目管理
     path('project/list/', project.project_list, name='project_list'),
+    # 星标项目
+    path('project/star/<str:project_type>/<int:project_id>/', project.project_star, name='project_star'),
+    # 取消星标
+    path('project/unstar/<str:project_type>/<int:project_id>/', project.project_unstar, name='project_unstar'),
 ]

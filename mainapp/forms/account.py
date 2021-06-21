@@ -8,14 +8,20 @@ from django_redis import get_redis_connection
 
 from utils.encrypt import md5
 from utils.tencent.sms import send_sms_single
-from .models import UserInfo
+from mainapp.models import UserInfo
 
 
 # Bootstrap基类，用于给表单添加样式以及placeholder
 class BootStrapForm(object):
+
+    bootstrap_class_exclude = []
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for name, field in self.fields.items():
+            # 部分字段应用样式
+            if name in self.bootstrap_class_exclude:
+                continue
             field.widget.attrs['class'] = 'form-control'
             field.widget.attrs['placeholder'] = '请输入%s' % field.label
 
