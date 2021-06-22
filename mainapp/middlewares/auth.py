@@ -2,7 +2,7 @@ from datetime import datetime
 
 from django.shortcuts import redirect
 from django.utils.deprecation import MiddlewareMixin
-from mainapp.models import UserInfo
+from mainapp.models import UserInfo, Project, ProjectUser
 from django.conf import settings
 from mainapp.models import Transaction, PricePolicy
 
@@ -12,6 +12,7 @@ class Tracer:
         """用于封装返回给view的tracer对象"""
         self.user = None
         self.price_policy = None
+        self.project = None
 
 
 class AuthMiddleware(MiddlewareMixin):
@@ -54,3 +55,21 @@ class AuthMiddleware(MiddlewareMixin):
         #         request.price_policy = Transaction.objects.filter(user=user_object, status=2, price_policy__category=1).first()
         #     else:
         #         request.price_policy = _object.price_policy
+
+    def process_view(self, request, view, args, kwargs):
+        if not request.path_info.startswith('/manage/'):
+            return
+        # 判断是否是自己的项目
+        project_id = kwargs.get('project_id')
+        project_obj = Project.objects.filter(creator=request.tracer.user, id=project_id).first()
+        if project_obj:
+            request.tracer.project = project_obj
+            return
+        # 不是自己创建的，判断是否是自己参与的
+        project_obj = ProjectUser.objects.filter(user=request.tracer.user, project_id=project_id).first()
+        if project_obj:
+            request.tracer.project = project_obj.project
+            return
+
+        # 都不属于
+        return redirect('mainapp:project_list')

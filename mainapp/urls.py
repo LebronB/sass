@@ -1,5 +1,5 @@
-from django.urls import path
-from .views import account, project
+from django.urls import path, include
+from .views import account, project, manage
 
 
 app_name = "mainapp"
@@ -21,10 +21,20 @@ urlpatterns = [
     # 用户退出
     path('logout/', account.logout, name='logout'),
 
-    # 项目管理
+    # 项目列表
     path('project/list/', project.project_list, name='project_list'),
     # 星标项目
     path('project/star/<str:project_type>/<int:project_id>/', project.project_star, name='project_star'),
     # 取消星标
     path('project/unstar/<str:project_type>/<int:project_id>/', project.project_unstar, name='project_unstar'),
+
+    # 项目管理
+    path('manage/<int:project_id>/', include([
+        path('dashboard/', manage.dashboard, name='dashboard'),
+        path('issues/', manage.issues, name='issues'),
+        path('statistics/', manage.statistics, name='statistics'),
+        path('wiki/', manage.wiki, name='wiki'),
+        path('files/', manage.files, name='files'),
+        path('settings/', manage.settings, name='settings'),
+    ])),
 ]
