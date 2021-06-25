@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import account, project, manage
+from .views import account, project, manage, wiki
 
 
 app_name = "mainapp"
@@ -33,7 +33,13 @@ urlpatterns = [
         path('dashboard/', manage.dashboard, name='dashboard'),
         path('issues/', manage.issues, name='issues'),
         path('statistics/', manage.statistics, name='statistics'),
-        path('wiki/', manage.wiki, name='wiki'),
+
+        path('wiki/', wiki.wiki, name='wiki'),
+        path('wiki/add/', wiki.wiki_add, name='wiki_add'),
+        path('wiki/catalog/', wiki.wiki_catalog, name='wiki_catalog'),
+        path('wiki/delete/<int:wiki_id>/', wiki.wiki_delete, name='wiki_delete'),
+        path('wiki/edit/<int:wiki_id>/', wiki.wiki_edit, name='wiki_edit'),
+
         path('files/', manage.files, name='files'),
         path('settings/', manage.settings, name='settings'),
     ])),

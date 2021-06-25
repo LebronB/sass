@@ -87,3 +87,23 @@ class ProjectUser(models.Model):
 
     create_datetime = models.DateTimeField(verbose_name='加入时间', auto_now_add=True)
 
+
+class Wiki(models.Model):
+    """wiki文档"""
+    title = models.CharField(verbose_name='标题', max_length=32)
+    content = models.TextField(verbose_name='正文')
+    project = models.ForeignKey(verbose_name='项目', to='Project', on_delete=models.CASCADE, related_name='wiki')
+    depth = models.IntegerField(verbose_name='深度', default=1)
+
+    # 自关联使用`Wiki`或者`self`
+    parent = models.ForeignKey(
+        verbose_name='父文章',
+        to='Wiki',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='children'
+    )
+
+    def __str__(self):
+        return self.title
