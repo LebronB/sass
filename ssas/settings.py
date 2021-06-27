@@ -179,3 +179,6 @@ try:
 except ImportError:
     pass
 
+
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+

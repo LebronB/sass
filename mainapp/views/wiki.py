@@ -1,9 +1,14 @@
-from django.http import JsonResponse, HttpResponse
+from django.conf import settings
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
 
-from mainapp.models import Wiki
+
 from mainapp.forms.wiki import WikiModelForm
+from mainapp.models import Wiki
+from utils.encrypt import uid
+from utils.tencent.cos import upload_files
 
 
 def wiki(request, project_id):
@@ -37,7 +42,8 @@ def wiki_add(request, project_id):
 
 def wiki_catalog(request, project_id):
     """wiki目录展示"""
-    data = Wiki.objects.filter(project=request.tracer.project).values('id', 'title', 'parent_id').order_by('depth', 'id')
+    data = Wiki.objects.filter(project=request.tracer.project).values('id', 'title', 'parent_id').order_by('depth',
+                                                                                                           'id')
     return JsonResponse({'status': True, 'data': list(data)})
 
 
@@ -69,3 +75,33 @@ def wiki_edit(request, project_id, wiki_id):
         return redirect(pre_url)
     else:
         return render(request, 'mainapp/wiki_form.html', {'form': form})
+
+
+@csrf_exempt
+def wiki_upload(request, project_id):
+    """上传本地图片"""
+    result = {
+        'success': 0,
+        'massage': None,
+        'url': None
+    }
+
+    image = request.FILES.get('editormd-image-file')
+    if not image:
+        # 没有上传文件，处理上传失败的情况
+        result['massage'] = "文件不存在"
+        return JsonResponse(result)
+
+    ext = image.name.rsplit('.')[-1]
+    key = "{}.{}".format(uid(request.tracer.user.mobile_phone), ext)
+
+    image_url = upload_files(request.tracer.project.bucket,
+                             request.tracer.project.region,
+                             image,
+                             key
+                             )
+
+    result['success'] = 1
+    result['url'] = image_url
+
+    return JsonResponse(result)

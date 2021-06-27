@@ -1,6 +1,8 @@
 {% extends "layout/project_base.html" %}
+{% load static %}
 
 {% block css %}
+  <link rel="stylesheet" href="{% static 'markdown-md/css/editormd.preview.min.css' %}">
   <style>
         .panel-default {
             margin-top: 10px;
@@ -71,7 +73,9 @@
           </div>
           <div class="col-sm-9 content">
             {% if wiki_obj %}
-              {{ wiki_obj.content }}
+              <div id="previewMarkdown">
+                <textarea>{{ wiki_obj.content }}</textarea>
+              </div>
             {% else %}
               <div style="text-align: center; margin-top: 50px">
                 <h4>《{{ request.tracer.project.name }}》wiki文档库</h4>
@@ -87,12 +91,21 @@
 {% endblock %}
 
 {% block script %}
+    <script src="{% static 'markdown-md/editormd.min.js' %}"></script>
+    <script src="{% static 'markdown-md/lib/marked.min.js' %}"></script>
+    <script src="{% static 'markdown-md/lib/prettify.min.js' %}"></script>
+    <script src="{% static 'markdown-md/lib/raphael.min.js' %}"></script>
+    <script src="{% static 'markdown-md/lib/underscore.min.js' %}"></script>
+    <script src="{% static 'markdown-md/lib/sequence-diagram.min.js' %}"></script>
+    <script src="{% static 'markdown-md/lib/flowchart.min.js' %}"></script>
+    <script src="{% static 'markdown-md/lib/jquery.flowchart.min.js' %}"></script>
+
     <script>
         var WIKI_DETAIL_URL = "{% url 'mainapp:wiki' project_id=request.tracer.project.id %}";
         $(function () {
 
             initCatalog();
-
+            initPreviewMarkdown();
         });
 
         function initCatalog() {
@@ -115,11 +128,17 @@
                         })
                     } else {
                         alert("初始化目录失败");
-                    {#    TODO: P112#}
                     }
                 }
             })
         }
+
+        function initPreviewMarkdown() {
+            editormd.markdownToHTML("previewMarkdown", {
+                htmlDecode: "style,script,iframe"
+            });
+        }
+
     </script>
 
 {% endblock %}

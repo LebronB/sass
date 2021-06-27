@@ -1,7 +1,10 @@
+from datetime import time
+
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
 from mainapp.forms.project import ProjectModelForm
 from mainapp.models import Project, ProjectUser
+from utils.tencent.cos import create_bucket
 
 
 def project_list(request):
@@ -25,8 +28,16 @@ def project_list(request):
         form = ProjectModelForm(request)
         context = {'form': form, 'project_dict': project_dict}
         return render(request, 'mainapp/project_list.html', context)
+
     form = ProjectModelForm(request, data=request.POST)
     if form.is_valid():
+        # 创建桶和区域
+        bucket = "{}-{}-1305939544".format(form.cleaned_data.get('name'), request.tracer.user.mobile_phone)
+        region = "ap-chengdu"
+        create_bucket(bucket, region)
+
+        form.instance.bucket = bucket
+        form.instance.region = region
         form.instance.creator = request.tracer.user
         form.save()
         return JsonResponse({'status': True})
@@ -45,7 +56,6 @@ def project_star(request, project_type, project_id):
         return redirect('mainapp:project_star')
 
     return HttpResponse("错误请求")
-
 
 def project_unstar(request, project_type, project_id):
     """取消星标"""

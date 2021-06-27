@@ -1,6 +1,8 @@
 {% extends "layout/project_base.html" %}
+{% load static %}
 
 {% block css %}
+  <link rel="stylesheet" href="{% static 'markdown-md/css/editormd.min.css' %}">
   <style>
         .panel-default {
             margin-top: 10px;
@@ -36,6 +38,10 @@
             margin-left: -1px;
         }
 
+        .editormd-fullscreen {
+          z-index: 1001;
+        }
+
   </style>
 {% endblock %}
 
@@ -55,18 +61,29 @@
       </div>
         <div class="panel-body">
           <div class="col-sm-3 title-list">
-            目录
+            <ul id="catalog">
 
+            </ul>
           </div>
           <div class="col-sm-9 content">
             <form method="post">
               {% csrf_token %}
               {% for field in form %}
+                {% if field.name == 'content' %}
                 <div class="form-group">
                   <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                  {{ field }}
+                  <div id="editor">
+                    {{ field }}
+                  </div>
                   <span class="error-msg">{{ field.errors.0 }}</span>
                 </div>
+                {% else %}
+                  <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    <span class="error-msg">{{ field.errors.0 }}</span>
+                  </div>
+                {% endif %}
               {% endfor %}
               <button type="submit" class="btn btn-primary">提交</button>
             </form>
@@ -75,4 +92,55 @@
         </div>
     </div>
   </div>
+{% endblock %}
+
+{% block script %}
+  <script src="{% static 'markdown-md/editormd.min.js' %}"></script>
+    <script>
+        var WIKI_DETAIL_URL = "{% url 'mainapp:wiki' project_id=request.tracer.project.id %}";
+        var WIKI_UPLOAD_URL = "{% url "mainapp:wiki_upload" project_id=request.tracer.project.id %}";
+
+        $(function () {
+
+            initCatalog();
+            initEditorMd();
+        });
+
+        function initEditorMd() {
+            editormd('editor', {
+                placeholder: "请输入内容",
+                height: 500,
+                path: "{% static "markdown-md/lib/" %}",
+                imageUpload: true,
+                imageFormats: ["jpg", "jpeg", "png", "gif"],
+                imageUploadURL: WIKI_UPLOAD_URL,
+            })
+        }
+
+        function initCatalog() {
+            $.ajax({
+                url: "{% url 'mainapp:wiki_catalog' project_id=request.tracer.project.id %}",
+                type: "GET",
+                dataType: "JSON",
+                success: function (res) {
+                    if (res.status) {
+                        $.each(res.data, function (index, item) {
+                            var href = WIKI_DETAIL_URL + "?wiki_id=" + item.id;
+                            var li = $("<li>").attr('id', "id_" + item.id).append($('<a>').text(item.title).attr('href', href)).append($('<ul>'));
+
+                            //[ 1, "asdasd", null ], [ 4, "article1", 2 ]
+                            if (!item.parent_id) {
+                                $('#catalog').append(li);
+                            } else {
+                                $("#id_" + item.parent_id).children('ul').append(li);
+                            }
+                        })
+                    } else {
+                        alert("初始化目录失败");
+                    }
+                }
+            })
+        }
+    </script>
+
 {% endblock %}

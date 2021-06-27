@@ -74,6 +74,8 @@ class Project(models.Model):
     creator = models.ForeignKey(verbose_name='创建者', to='UserInfo', on_delete=models.CASCADE)
     create_datetime = models.DateTimeField(verbose_name='创建时间', auto_now_add=True)
 
+    bucket = models.CharField(verbose_name='COS桶', max_length=128)
+    region = models.CharField(verbose_name='COS区域', max_length=128)
     # 查询：可以省事；
     # 增加、删除、修改：无法完成
     # project_user = models.ManyToManyField(to='UserInfo',through="ProjectUser",through_fields=('project','user'))
